@@ -1,0 +1,47 @@
+- name: Setup environment on Azure VM
+  hosts: azure_vm
+  become: true
+
+  tasks:
+    - name: Install Terraform and Git
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - git
+        - unzip
+        - curl
+
+    - name: Install Terraform binary
+      shell: |
+        curl -fsSL https://apt.releases.hashicorp.com/gpg | apt-key add -
+        apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+        apt-get update && apt-get install -y terraform
+
+    - name: Clone Git repository with Terraform scripts
+      git:
+        repo: '<your-git-repo-url>'
+        dest: /tmp/terraform-scripts
+
+    - name: Execute Terraform script
+      shell: |
+        cd /tmp/terraform-scripts
+        terraform init
+        terraform apply -auto-approve
+      register: tf_output
+
+    - name: Capture Terraform output
+      shell: |
+        cd /tmp/terraform-scripts
+        terraform output
+      register: output_result
+      changed_when: false
+
+    - name: Display Terraform output
+      debug:
+        var: output_result.stdout
+
+    - name: Cleanup cloned files
+      file:
+        path: /tmp/terraform-scripts
+        state: absent
