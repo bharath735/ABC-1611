@@ -1,0 +1,127 @@
+ 
+
+Here’s a step-by-step outline to accomplish your requirements:
+
+Step 1: Create a Linux VM in Azure
+	1.	Login to Azure Portal and navigate to “Virtual Machines.”
+	2.	Create a new VM:
+	•	Select the preferred region, image (e.g., Ubuntu 20.04 LTS), and size.
+	•	Under the “Authentication type,” select SSH public key, then paste your public key.
+	•	Ensure that the “Public IP” option is enabled for remote access.
+
+ 
+
+
+Step-2. Store the Certificate in Ansible Vault
+Install Ansible on your local machine:
+sudo apt update 
+sudo apt install ansible
+
+Create an Ansible Vault File:
+Use the command: ansible-vault create certificate.yml
+
+Add the Certificate:
+certificate: |
+  -----BEGIN CERTIFICATE-----
+  (certificate content)
+  -----END CERTIFICATE-----
+
+
+Verify the Vault: ansible-vault view certificate.yml
+ 
+3. Perform Operations on the VM Using Ansible
+Create a playbook that:
+	•	Installs Terraform and Git.
+	•	Clones the Git repository with Terraform scripts.
+	•	Executes the Terraform scripts and captures output.
+	•	Cleans up created and cloned files.
+
+Install Terraform and Git
+
+1.	Create the Inventory File:
+o	Create a file inventory with the VM details:
+
+[linux_vms]
+172.214.132.140 ansible_ssh_user=azureuser ansible_ssh_private_key_file=/home/azureuser/ansible-key.pem
+
+Create an Ansible Playbook to Automate Tasks on the VM
+Create a playbook that:
+	•	Installs Terraform and Git.
+	•	Clones the Git repository with Terraform scripts.
+	•	Executes the Terraform scripts and captures output.
+	•	Cleans up created and cloned files.
+
+Create a playbook setup.yml:
+- name: Setup environment on Azure VM
+  hosts: azure_vm
+  become: true
+
+  tasks:
+    - name: Install Terraform and Git
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - git
+        - unzip
+        - curl
+
+    - name: Install Terraform binary
+      shell: |
+        curl -fsSL https://apt.releases.hashicorp.com/gpg | apt-key add -
+        apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+        apt-get update && apt-get install -y terraform
+
+    - name: Clone Git repository with Terraform scripts
+      git:
+        repo: '<your-git-repo-url>'
+        dest: /tmp/terraform-scripts
+
+    - name: Execute Terraform script
+      shell: |
+        cd /tmp/terraform-scripts
+        terraform init
+        terraform apply -auto-approve
+      register: tf_output
+
+    - name: Capture Terraform output
+      shell: |
+        cd /tmp/terraform-scripts
+        terraform output
+      register: output_result
+      changed_when: false
+
+    - name: Display Terraform output
+      debug:
+        var: output_result.stdout
+
+    - name: Cleanup cloned files
+      file:
+        path: /tmp/terraform-scripts
+        state: absent
+ 
+
+Execute the playbook: ansible-playbook -i /home/azureuser/inventory setup.yml
+
+ Step 4: Create a github repository with name ABC-1611
+
+
+Step 5: Initialize a GitHub Repository and Push the Playbook
+
+	1.	Create a GitHub Repository with the name ABC-1611.
+	2.	Initialize a local Git repository in the project folder and push it to GitHub.
+
+cd ABC-1611
+git init
+git add .
+git commit -m "Initial commit - Ansible Playbook for Azure VM setup"
+git remote add origin <github-repo-url>
+git push -u origin main
+
+ 
+
+ 
+
+ 
+
+ 
