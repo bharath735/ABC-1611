@@ -20,7 +20,7 @@
 
     - name: Clone Git repository with Terraform scripts
       git:
-        repo: '<your-git-repo-url>'
+        repo: 'https://github.com/bharath735/Terraform.git'
         dest: /tmp/terraform-scripts
 
     - name: Execute Terraform script
